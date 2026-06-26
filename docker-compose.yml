@@ -1,0 +1,18 @@
+services:
+  traccar-dev-final:
+    build: .
+    container_name: traccar-dev-final
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      NODE_ENV: production
+      PORT: "3000"
+      TRACCAR_URL: "https://gps2.rafacarrastreadores.com.br"
+      TRACCAR_AUTH_MODE: "token-session-cookie"
+      # Coloque token/senha no arquivo data/config.local.json ou descomente abaixo.
+      # TRACCAR_TOKEN: ""
+      # TRACCAR_USER: ""
+      # TRACCAR_PASSWORD: ""
+    volumes:
+      - ./data:/app/data

@@ -1,0 +1,22 @@
+{
+  "publicAppUrl": "https://rafacar-dev-v4-production.up.railway.app",
+  "traccarWebhookSecret": "troque-por-um-segredo-forte",
+  "pushover": {
+    "appToken": "",
+    "userKey": "",
+    "device": "",
+    "sound": "pushover",
+    "priority": 0
+  },
+  "firebase": {
+    "vapidKey": "",
+    "webConfig": {
+      "apiKey": "",
+      "authDomain": "",
+      "projectId": "rafacar-dev-v4",
+      "storageBucket": "",
+      "messagingSenderId": "",
+      "appId": ""
+    }
+  }
+}

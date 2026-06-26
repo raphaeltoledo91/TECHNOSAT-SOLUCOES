@@ -1,0 +1,10 @@
+{
+  "traccarUrl": "https://gps2.rafacarrastreadores.com.br",
+  "port": 3000,
+  "pollingMs": 30000,
+  "authMode": "traccar-user-session",
+  "publicAppName": "RAFACAR",
+  "featureLiveVideo": true,
+  "featureDriverIdentification": true,
+  "allowUnsafeGoogleTiles": true
+}
