@@ -20,6 +20,7 @@ import {
   Gauge,
   Image as ImageIcon,
   KeyRound,
+  Layers,
   LocateFixed,
   Lock,
   LogOut,
@@ -29,8 +30,10 @@ import {
   Power,
   RefreshCw,
   Route,
+  Save,
   Search,
   Send,
+  Settings,
   ShieldCheck,
   Sun,
   Thermometer,
@@ -38,6 +41,7 @@ import {
   Unlock,
   UserRound,
   Video,
+  Wrench,
   Wifi,
   WifiOff,
   X,
@@ -48,7 +52,7 @@ import L from 'leaflet';
 import './styles.css';
 
 const API_TIMEOUT_MS = 18000;
-const DEFAULT_CENTER = [-20.812249, -49.375975];
+const DEFAULT_CENTER = [-20.8177, -49.3792];
 const DEFAULT_POLLING_MS = 30000;
 const CARS_V2_MAP_ICON_PATH = '/vehicle-icons/carsv2-map';
 
@@ -119,6 +123,8 @@ const tabs = [
   ['dashboard', 'Dashboard', Activity],
   ['assistente', 'Assistente IA', Bot],
   ['veiculos', 'Veículos', Car],
+  ['motoristas', 'Motoristas', UserRound],
+  ['manutencao', 'Manutenção', Wrench],
   ['eventos', 'Alertas', AlertTriangle],
   ['relatorios', 'Relatórios', Route],
   ['comandos', 'Comandos', Command],
@@ -802,18 +808,19 @@ function vehicleSvgBody(category) {
 function markerSizeForZoom(zoom = 14) {
   const value = numberOrNull(zoom);
   if (value === null || value < 11) return 24;
-  if (value < 13) return 30;
-  if (value < 15) return 36;
-  if (value < 17) return 44;
-  if (value < 19) return 52;
-  return 58;
+  if (value < 13) return 28;
+  if (value < 15) return 32;
+  if (value < 17) return 36;
+  if (value < 19) return 40;
+  return 44;
 }
 
-function vehicleSvgMarkup(category, state, status, course, title, label, size = 74, blocked = false) {
+function vehicleSvgMarkup(category, state, status, course, title, label, size = 74, blocked = false, alertActive = false) {
   const markerClass = size < 62 ? 'marker-compact' : 'marker-detailed';
   const image = vehicleImage(category);
+  const alertClass = alertActive ? 'alert-active' : '';
   return `
-    <div class="vehicle-svg-marker movement-${escapeHtml(state)} status-${escapeHtml(status)} ${escapeHtml(markerClass)} ${blocked ? 'is-blocked' : 'is-free'}" title="${escapeHtml(title)}" style="--marker-size:${size}px">
+    <div class="vehicle-svg-marker movement-${escapeHtml(state)} status-${escapeHtml(status)} ${escapeHtml(markerClass)} ${blocked ? 'is-blocked' : 'is-free'} ${escapeHtml(alertClass)}" title="${escapeHtml(title)}" style="--marker-size:${size}px">
       <div class="vehicle-svg-pulse"></div>
       <div class="vehicle-image-core" role="img" aria-label="${escapeHtml(title)}" style="transform: rotate(${safeCourse(course)}deg)">
         <img class="vehicle-image-img" src="${escapeHtml(image)}" alt="" loading="eager" decoding="async" />
@@ -824,15 +831,17 @@ function vehicleSvgMarkup(category, state, status, course, title, label, size = 
   `;
 }
 
-function createVehicleIcon(device = {}, position = {}, zoom = 14) {
+function createVehicleIcon(device = {}, position = {}, zoom = 14, selected = false, alertActive = false, driverDisplay = null) {
   const safePosition = position && typeof position === 'object' ? position : {};
   const category = detectVehicleCategory(device, safePosition);
   const course = safeCourse(safePosition.course);
   const state = movementState(device, safePosition);
   const status = String(device.status || 'unknown').toLowerCase();
-  const title = `${getVehicleName(device)} - ${movementLabel(state)} - ${formatSpeed(safePosition.speed)} - direção ${course}°`;
+  const driverText = driverDisplay?.label && driverDisplay.label !== 'Não informado' ? ` - Motorista: ${driverDisplay.label}` : '';
+  const title = `${getVehicleName(device)} - ${movementLabel(state)} - ${formatSpeed(safePosition.speed)} - direção ${course}°${driverText}`;
   const label = vehicleMapLabel(category);
-  const size = markerSizeForZoom(zoom);
+  const baseSize = markerSizeForZoom(zoom);
+  const size = selected ? Math.round(baseSize * 1.28) : baseSize;
   const anchor = Math.round(size / 2);
 
   return L.divIcon({
@@ -840,7 +849,7 @@ function createVehicleIcon(device = {}, position = {}, zoom = 14) {
     iconSize: [size, size],
     iconAnchor: [anchor, anchor],
     popupAnchor: [0, -Math.round(size * 0.56)],
-    html: vehicleSvgMarkup(category, state, status, course, title, label, size, isBlocked(device, safePosition))
+    html: vehicleSvgMarkup(category, state, status, course, title, label, size, isBlocked(device, safePosition), alertActive)
   });
 }
 
@@ -924,22 +933,28 @@ function Badge({ tone = 'info', children }) {
   return <span className={`badge ${tone}`}>{children}</span>;
 }
 
-function MapAutoFit({ positions, enabled = true, singleZoom = 18, maxZoom = 18, padding = [64, 64], requestKey = 0 }) {
+function MapAutoFit({ positions, enabled = true, singleZoom = 18, maxZoom = 18, padding = [64, 64], requestKey = 0, fallbackCenter = DEFAULT_CENTER, fallbackZoom = 11 }) {
   const map = useMap();
   useEffect(() => {
-    if (!enabled || !Array.isArray(positions) || positions.length === 0) return;
-    const points = positions.map(getLatLng).filter(Boolean);
-    if (!points.length) return;
+    if (!enabled) return;
+
+    const points = (Array.isArray(positions) ? positions.map(getLatLng).filter(Boolean) : []);
+    if (!points.length) {
+      map.flyTo(fallbackCenter, fallbackZoom, { animate: true, duration: 0.8 });
+      return;
+    }
+
     if (points.length === 1) {
       map.flyTo(points[0], singleZoom, { animate: true, duration: 0.75 });
       return;
     }
+
     map.fitBounds(points, { padding, maxZoom });
     const timer = setTimeout(() => {
       if (map.getZoom() < 15) map.setZoom(15, { animate: true });
     }, 360);
     return () => clearTimeout(timer);
-  }, [enabled, map, positions, singleZoom, maxZoom, padding, requestKey]);
+  }, [enabled, map, positions, singleZoom, maxZoom, padding, requestKey, fallbackCenter, fallbackZoom]);
   return null;
 }
 
@@ -962,6 +977,15 @@ function MapFocusTarget({ item, zoom = 18 }) {
     if (!latLng) return;
     map.flyTo(latLng, zoom, { animate: true, duration: 0.78 });
   }, [item, map, zoom]);
+  return null;
+}
+
+function MapCenterTarget({ center, zoom = 11, requestKey = 0 }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!Array.isArray(center) || center.length < 2) return;
+    map.flyTo([Number(center[0]), Number(center[1])], zoom, { animate: true, duration: 0.8 });
+  }, [center, map, requestKey, zoom]);
   return null;
 }
 
@@ -1135,21 +1159,33 @@ const VehicleMarker = memo(function VehicleMarker({ item, onFocus, onOpenCamera,
   const markerRef = useRef(null);
   const [commandBusy, setCommandBusy] = useState(false);
   const [commandMessage, setCommandMessage] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null);
+  const [contextCommands, setContextCommands] = useState([]);
+  const [contextBusy, setContextBusy] = useState(false);
+  const [contextMessage, setContextMessage] = useState('');
   const latLng = getLatLng(position);
   const latKey = latLng ? `${latLng[0]},${latLng[1]}` : '';
-  const centerOnPopup = useCallback((targetZoom = 18) => {
+  const centerOnPopup = useCallback((targetZoom = 19) => {
     if (!latLng) return;
     const nextZoom = Math.max(map.getZoom(), targetZoom);
-    map.flyTo(latLng, nextZoom, { animate: true, duration: 0.68 });
+    map.flyTo(latLng, nextZoom, { animate: true, duration: 0.7 });
   }, [latKey, map]);
   useEffect(() => {
     if (!focused || !latLng) return undefined;
     const timer = window.setTimeout(() => {
-      centerOnPopup(18);
+      centerOnPopup(19);
       markerRef.current?.openPopup?.();
     }, 240);
     return () => window.clearTimeout(timer);
   }, [centerOnPopup, focused, latKey]);
+
+  useEffect(() => {
+    if (!contextMenu) return undefined;
+    const closeMenu = () => setContextMenu(null);
+    document.addEventListener('click', closeMenu);
+    return () => document.removeEventListener('click', closeMenu);
+  }, [contextMenu]);
+
   if (!latLng) return null;
 
   const attrs = getPositionAttributes(position);
@@ -1195,18 +1231,55 @@ const VehicleMarker = memo(function VehicleMarker({ item, onFocus, onOpenCamera,
     }
   };
 
+  const openContextMenu = useCallback(async (event) => {
+    event?.originalEvent?.preventDefault?.();
+    event?.originalEvent?.stopPropagation?.();
+    setContextMessage('');
+    setContextCommands([]);
+    const x = event?.originalEvent?.clientX || 120;
+    const y = event?.originalEvent?.clientY || 120;
+    setContextMenu({ x, y, deviceId: Number(device.id) });
+    try {
+      const types = await request(`/api/command-types?deviceId=${device.id}`);
+      setContextCommands(normalizeArray(types));
+    } catch (error) {
+      setContextMessage(error.message || 'Não foi possível carregar os comandos do backend para este veículo.');
+    }
+  }, [device.id]);
+
+  const runContextCommand = useCallback(async (commandType) => {
+    if (!commandType) return;
+    setContextBusy(true);
+    setContextMessage('');
+    try {
+      const result = await request('/api/send-command', {
+        method: 'POST',
+        body: JSON.stringify({ deviceId: Number(device.id), type: commandType, attributes: {} })
+      });
+      setContextMessage(result?.ok === false ? 'Comando enviado, mas sem confirmação do backend.' : `Comando ${commandType} enviado.`);
+    } catch (error) {
+      setContextMessage(`Falha ao enviar comando: ${error.message}`);
+    } finally {
+      setContextBusy(false);
+      setContextMenu(null);
+    }
+  }, [device.id]);
+
   return (
+    <>
     <Marker
       ref={markerRef}
       position={latLng}
-      icon={createVehicleIcon(device, position, zoom)}
+      icon={createVehicleIcon(device, position, zoom, focused, Boolean(item.event), item.driverDisplay)}
       eventHandlers={{
         click: () => {
           onFocus?.(device.id);
-          centerOnPopup(18);
+          centerOnPopup(19);
+          setContextMenu(null);
         },
+        contextmenu: openContextMenu,
         popupopen: () => {
-          window.setTimeout(() => centerOnPopup(17), 80);
+          window.setTimeout(() => centerOnPopup(19), 80);
         }
       }}
     >
@@ -1264,14 +1337,43 @@ const VehicleMarker = memo(function VehicleMarker({ item, onFocus, onOpenCamera,
           )}
 
           <div className="popup-footer">
-            <PopupMetric icon={<Power size={14} />} label="Status Traccar" value={statusLabel(device.status)} />
+            <PopupMetric icon={<Power size={14} />} label="Status" value={statusLabel(device.status)} />
             <PopupMetric icon={<UserRound size={14} />} label="Motorista" value={driverDisplay.label} />
             <PopupMetric icon={<AlertTriangle size={14} />} label="Alerta" value={alertText(event, position)} />
-            {attrs.sat || attrs.satellites ? <PopupMetric icon={<LocateFixed size={14} />} label="Satélites" value={attrs.sat || attrs.satellites} /> : null}
+            {attrs.sat || attrs.satellites ? <PopupMetric icon={<LocateFixed size={14} />} label="Satélite" value={attrs.sat || attrs.satellites} /> : null}
           </div>
         </div>
       </Popup>
     </Marker>
+    {contextMenu && (
+      <div className="vehicle-context-menu" style={{ left: contextMenu.x, top: contextMenu.y }} onClick={(event) => event.stopPropagation()}>
+        <div className="vehicle-context-menu-title">{getVehicleName(device)}</div>
+        <button type="button" className="ghost-btn" onClick={() => { onFocus?.(device.id); centerOnPopup(19); setContextMenu(null); }}>
+          <LocateFixed size={15} /> Centralizar
+        </button>
+        <button type="button" className="ghost-btn" onClick={() => { onOpenCamera?.(item); setContextMenu(null); }}>
+          <Camera size={15} /> Abrir câmera
+        </button>
+        <button type="button" className={`ghost-btn ${blocked ? 'danger' : ''}`} onClick={() => { setContextMenu(null); void sendBlockCommand(); }}>
+          {blocked ? <Unlock size={15} /> : <Lock size={15} />}
+          {blocked ? 'Desbloquear' : 'Bloquear'}
+        </button>
+        <div className="vehicle-context-menu-section">
+          <small>Comandos do backend</small>
+          {contextBusy ? <span className="muted">Enviando...</span> : null}
+          {contextCommands.length ? contextCommands.map((entry) => {
+            const commandType = entry?.type || entry?.name || entry;
+            return (
+              <button key={commandType} type="button" className="ghost-btn" onClick={() => { void runContextCommand(commandType); }}>
+                <Command size={14} /> {commandType}
+              </button>
+            );
+          }) : <span className="muted">Sem comandos disponíveis para este veículo.</span>}
+        </div>
+        {contextMessage ? <div className="vehicle-context-message">{contextMessage}</div> : null}
+      </div>
+    )}
+    </>
   );
 });
 
@@ -1308,18 +1410,15 @@ function Dashboard({ items, stats, layerKey, setLayerKey, fitMap, setFitMap, sea
   const stopped = items.filter(({ device, position }) => movementState(device, position) === 'stopped').length;
   const focusedItem = items.find(({ device, position }) => Number(device.id) === Number(focusedVehicleId) && isValidPosition(position)) || null;
   const [fitRequestId, setFitRequestId] = useState(0);
+  const [centerViewRequestId, setCenterViewRequestId] = useState(0);
   const focusVehicle = useCallback((vehicleId) => {
     setFocusedVehicleId(Number(vehicleId));
     setFitMap(false);
   }, [setFitMap, setFocusedVehicleId]);
   const fitAllVehicles = useCallback(() => {
     setFocusedVehicleId(null);
-    setFitMap(true);
-    setFitRequestId((value) => value + 1);
-  }, [setFitMap, setFocusedVehicleId]);
-  useEffect(() => {
-    setFocusedVehicleId(null);
-    setFitMap(true);
+    setFitMap(false);
+    setCenterViewRequestId((value) => value + 1);
     setFitRequestId((value) => value + 1);
   }, [setFitMap, setFocusedVehicleId]);
 
@@ -1350,9 +1449,10 @@ function Dashboard({ items, stats, layerKey, setLayerKey, fitMap, setFitMap, sea
           </div>
 
           <div className="map-wrap full-background-map">
-            <MapContainer center={getLatLng(validPositions[0]) || DEFAULT_CENTER} zoom={12} scrollWheelZoom>
+            <MapContainer center={DEFAULT_CENTER} zoom={11} scrollWheelZoom>
               <TileLayer attribution={layer.attribution} url={layer.url} maxZoom={20} />
-              <MapAutoFit positions={validPositions} enabled={fitMap} singleZoom={17} maxZoom={17} padding={[72, 72]} requestKey={fitRequestId} />
+              <MapAutoFit positions={validPositions} enabled={fitMap} singleZoom={17} maxZoom={17} padding={[72, 72]} requestKey={fitRequestId} fallbackCenter={DEFAULT_CENTER} fallbackZoom={11} />
+              <MapCenterTarget center={DEFAULT_CENTER} zoom={11} requestKey={centerViewRequestId} />
               <MapFocusTarget item={focusedItem} zoom={18} />
               {items.map((item) => <VehicleMarker key={item.device.id} item={item} onFocus={focusVehicle} onOpenCamera={onOpenCamera} focused={Number(item.device.id) === Number(focusedVehicleId)} />)}
             </MapContainer>
@@ -1457,8 +1557,7 @@ function VehicleList({ items, compact = false, selectedDeviceId = null, onSelect
   );
 }
 
-function VehiclesPage({ items, onOpenCamera }) {
-  const showCan = items.some(({ device, position }) => collectTelemetryGroups(device, position || {}).some((group) => group.key === 'can'));
+function VehiclesPage({ items, onOpenCamera, onFocusVehicle }) {
   const showTemperature = items.some(({ device, position }) => collectTelemetryGroups(device, position || {}).some((group) => group.key === 'temperature'));
   const showDriver = true;
 
@@ -1475,7 +1574,7 @@ function VehiclesPage({ items, onOpenCamera }) {
               <th>Velocidade</th>
               <th>Ignição</th>
               <th>Bateria</th>
-              {showCan && <th>Rede CAN</th>}
+              <th>Km/24h</th>
               {showTemperature && <th>Temperatura</th>}
               {showDriver && <th>Motorista</th>}
               <th>Última posição</th>
@@ -1487,10 +1586,14 @@ function VehiclesPage({ items, onOpenCamera }) {
               const last = position?.deviceTime || position?.fixTime || position?.serverTime;
               const plate = getVehiclePlate(device) || getVehicleUniqueId(device) || '-';
               const item = { device, position, category, event, driverDisplay };
+              const distance24h = numberOrNull(getAttr(position || {}, ['distance', 'odometer', 'tripDistance', 'totalDistance', 'distance24h'], null));
+              const distanceLabel = distance24h !== null ? `${distance24h.toFixed(distance24h >= 100 ? 0 : 1)} km` : '-';
               return (
                 <tr key={device.id}>
                   <td>
-                    <b>{getVehicleName(device)}</b>
+                    <button type="button" className="vehicle-name-link" onClick={() => onFocusVehicle?.(device.id)} title="Abrir veículo no mapa">
+                      <b>{getVehicleName(device)}</b>
+                    </button>
                     <br />
                     <button type="button" className="plate-camera-link table-plate-camera-link" onClick={() => onOpenCamera?.(item)} title="Abrir câmera e solicitar imagem ao vivo">
                       <Camera size={12} /> {plate}
@@ -1501,7 +1604,7 @@ function VehiclesPage({ items, onOpenCamera }) {
                   <td>{position ? formatKmh(position.speed) : '-'}</td>
                   <td>{ignitionLabel(attrs.ignition)}</td>
                   <td>{formatBattery(getAttr(position || {}, ['batteryLevel', 'battery'], null))}</td>
-                  {showCan && <td>{firstTelemetryValue(device, position || {}, 'can') || '-'}</td>}
+                  <td>{distanceLabel}</td>
                   {showTemperature && <td>{firstTelemetryValue(device, position || {}, 'temperature') || '-'}</td>}
                   {showDriver && <td title={driverDisplay?.detail || ''}>{driverDisplay?.label || 'Não informado'}</td>}
                   <td>{formatDate(last)}</td>
@@ -1539,6 +1642,209 @@ function EventsPage({ events, devicesById }) {
             </div>
           );
         })}
+      </div>
+    </section>
+  );
+}
+
+function DriversPage({ drivers = [], onRefresh }) {
+  const [editingId, setEditingId] = useState(null);
+  const [draftName, setDraftName] = useState('');
+  const [busyId, setBusyId] = useState(null);
+  const [message, setMessage] = useState('');
+  const sortedDrivers = useMemo(() => normalizeArray(drivers).slice().sort((a, b) => String(a.name || a.displayName || '').localeCompare(String(b.name || b.displayName || ''))), [drivers]);
+
+  const startEditing = (driver) => {
+    setEditingId(String(driver.id));
+    setDraftName(String(driver.name || driver.displayName || ''));
+    setMessage('');
+  };
+
+  const saveDriver = async (driver) => {
+    const nextName = draftName.trim();
+    if (!nextName) return;
+    setBusyId(String(driver.id));
+    setMessage('');
+    try {
+      await request(`/api/traccar/drivers/${driver.id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ ...driver, name: nextName })
+      });
+      setMessage(`Nome atualizado para ${nextName}.`);
+      setEditingId(null);
+      onRefresh?.({ silent: true });
+    } catch (error) {
+      setMessage(`Não foi possível atualizar o motorista: ${error.message}`);
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  return (
+    <section className="panel">
+      <h3>Motoristas</h3>
+      <div className="warn-box">Edite os nomes dos motoristas diretamente pelo backend Traccar quando houver permissão.</div>
+      {message && <div className={message.startsWith('Não') ? 'error-box' : 'success-box'}>{message}</div>}
+      <div className="list" style={{ maxHeight: 'none' }}>
+        {sortedDrivers.length ? sortedDrivers.map((driver) => {
+          const isEditing = String(editingId) === String(driver.id);
+          return (
+            <div className="row" key={driver.id}>
+              <div className="row-head">
+                <div>
+                  <b>{driver.name || driver.displayName || `Motorista ${driver.id}`}</b>
+                  <small>{driver.uniqueId || driver.licenseNumber || 'Sem identificador'}</small>
+                </div>
+                <Badge tone="info">{driver.phone || 'Sem telefone'}</Badge>
+              </div>
+              {isEditing ? (
+                <label>
+                  <small>Nome do motorista</small>
+                  <input value={draftName} onChange={(event) => setDraftName(event.target.value)} placeholder="Nome completo" />
+                </label>
+              ) : (
+                <small>{driver.name || driver.displayName || 'Sem nome cadastrado'}</small>
+              )}
+              <div className="actions">
+                {isEditing ? (
+                  <>
+                    <button className="primary-btn" type="button" onClick={() => saveDriver(driver)} disabled={busyId === String(driver.id)}>
+                      <Save size={16} /> {busyId === String(driver.id) ? 'Salvando...' : 'Salvar'}
+                    </button>
+                    <button className="ghost-btn" type="button" onClick={() => setEditingId(null)}>
+                      Cancelar
+                    </button>
+                  </>
+                ) : (
+                  <button className="ghost-btn" type="button" onClick={() => startEditing(driver)}>
+                    Editar nome
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        }) : <div className="warn-box">Nenhum motorista retornado pelo Traccar.</div>}
+      </div>
+    </section>
+  );
+}
+
+function MaintenancePage({ items = [] }) {
+  const firstDeviceId = items[0]?.device?.id ? String(items[0].device.id) : '';
+  const [deviceId, setDeviceId] = useState(firstDeviceId);
+  const [records, setRecords] = useState([]);
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState('');
+  const [form, setForm] = useState({ name: '', type: 'preventiva', description: '', nextService: '', status: 'planejada' });
+
+  useEffect(() => {
+    if (!deviceId && firstDeviceId) setDeviceId(firstDeviceId);
+  }, [deviceId, firstDeviceId]);
+
+  const loadRecords = useCallback(async (selectedDeviceId = deviceId) => {
+    if (!selectedDeviceId) {
+      setRecords([]);
+      return;
+    }
+    try {
+      const payload = await request(`/api/traccar/maintenance?deviceId=${selectedDeviceId}`);
+      setRecords(normalizeArray(payload));
+    } catch (error) {
+      setMessage(`Não foi possível carregar a manutenção: ${error.message}`);
+    }
+  }, [deviceId]);
+
+  useEffect(() => {
+    if (!deviceId) return;
+    void loadRecords(deviceId);
+  }, [deviceId, loadRecords]);
+
+  const saveRecord = async (event) => {
+    event.preventDefault();
+    if (!deviceId) return;
+    setBusy(true);
+    setMessage('');
+    try {
+      const payload = {
+        deviceId: Number(deviceId),
+        name: form.name.trim(),
+        type: form.type,
+        description: form.description.trim(),
+        nextService: form.nextService || null,
+        status: form.status
+      };
+      await request('/api/traccar/maintenance', { method: 'POST', body: JSON.stringify(payload) });
+      setMessage('Registro de manutenção salvo.');
+      setForm({ name: '', type: form.type, description: '', nextService: '', status: 'planejada' });
+      await loadRecords(deviceId);
+    } catch (error) {
+      setMessage(`Não foi possível salvar a manutenção: ${error.message}`);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <section className="panel">
+      <h3>Manutenção</h3>
+      <div className="warn-box">Cadastre planos e registros de manutenção com campos prontos para acompanhamento por veículo.</div>
+      {message && <div className={message.startsWith('Não') ? 'error-box' : 'success-box'}>{message}</div>}
+      <div className="form-grid" style={{ marginBottom: 14 }}>
+        <label>
+          <small>Veículo</small>
+          <select value={deviceId} onChange={(event) => setDeviceId(event.target.value)}>
+            {items.map(({ device }) => <option key={device.id} value={device.id}>{getVehicleName(device)}</option>)}
+          </select>
+        </label>
+        <label>
+          <small>Tipo</small>
+          <select value={form.type} onChange={(event) => setForm((current) => ({ ...current, type: event.target.value }))}>
+            <option value="preventiva">Preventiva</option>
+            <option value="corretiva">Corretiva</option>
+            <option value="inspecao">Inspeção</option>
+            <option value="pneus">Pneus</option>
+            <option value="freios">Freios</option>
+            <option value="oleo">Óleo</option>
+          </select>
+        </label>
+        <label>
+          <small>Descrição</small>
+          <input value={form.description} onChange={(event) => setForm((current) => ({ ...current, description: event.target.value }))} placeholder="Ex.: Revisão de freios" />
+        </label>
+        <label>
+          <small>Próxima manutenção</small>
+          <input value={form.nextService} onChange={(event) => setForm((current) => ({ ...current, nextService: event.target.value }))} placeholder="Data ou quilometragem" />
+        </label>
+        <label>
+          <small>Status</small>
+          <select value={form.status} onChange={(event) => setForm((current) => ({ ...current, status: event.target.value }))}>
+            <option value="planejada">Planejada</option>
+            <option value="em-andamento">Em andamento</option>
+            <option value="concluida">Concluída</option>
+            <option value="atrasada">Atrasada</option>
+          </select>
+        </label>
+        <label className="full">
+          <small>Nome / checklist</small>
+          <input value={form.name} onChange={(event) => setForm((current) => ({ ...current, name: event.target.value }))} placeholder="Ex.: Troca de óleo e filtros" />
+        </label>
+        <div className="full">
+          <button className="primary-btn" type="button" onClick={saveRecord} disabled={busy || !deviceId}>
+            <Wrench size={16} /> {busy ? 'Salvando...' : 'Salvar manutenção'}
+          </button>
+        </div>
+      </div>
+      <div className="maintenance-list">
+        {records.length ? records.map((record) => (
+          <div className="maintenance-card" key={record.id || `${record.name}-${record.nextService}`}>
+            <div className="row-head">
+              <b>{record.name || 'Manutenção sem nome'}</b>
+              <Badge tone={record.status === 'concluida' ? 'good' : record.status === 'atrasada' ? 'bad' : 'warn'}>{record.status || 'planejada'}</Badge>
+            </div>
+            <small>{record.type || 'preventiva'} · {record.description || 'Sem descrição'}</small>
+            <small>Próxima ação: {record.nextService || 'Não informada'}</small>
+          </div>
+        )) : <div className="warn-box">Nenhum registro de manutenção para este veículo.</div>}
       </div>
     </section>
   );
@@ -2151,6 +2457,28 @@ function AssistantReportTable({ rows = [] }) {
   );
 }
 
+const ASSISTANT_EXAMPLES = [
+  'Resumo geral da frota',
+  'Relatorio de rota hoje',
+  'Paradas de hoje',
+  'Viagens nas ultimas 24 horas',
+  'Eventos de hoje',
+  'Informacoes CAN e temperatura'
+];
+
+const ASSISTANT_HISTORY_STORAGE_KEY = 'rafacar-assistant-question-history';
+
+function readAssistantQuestionHistory() {
+  if (typeof window === 'undefined' || !window.localStorage) return [];
+  try {
+    const stored = window.localStorage.getItem(ASSISTANT_HISTORY_STORAGE_KEY);
+    const parsed = stored ? JSON.parse(stored) : [];
+    return Array.isArray(parsed) ? parsed.filter(Boolean).slice(0, 8) : [];
+  } catch {
+    return [];
+  }
+}
+
 function AIAssistantPage({ items, events }) {
   const [question, setQuestion] = useState('');
   const [answer, setAnswer] = useState(() => assistantFleetSummary(items, events));
@@ -2158,13 +2486,50 @@ function AIAssistantPage({ items, events }) {
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState('');
   const [meta, setMeta] = useState(null);
+  const [selectedVehicleIds, setSelectedVehicleIds] = useState([]);
+  const [questionHistory, setQuestionHistory] = useState(() => readAssistantQuestionHistory());
+  const [vehiclePickerOpen, setVehiclePickerOpen] = useState(false);
+
+  const selectedScopeItems = useMemo(() => {
+    if (!selectedVehicleIds.length) return items;
+    const selected = new Set(selectedVehicleIds.map(String));
+    return items.filter(({ device }) => selected.has(String(device?.id)));
+  }, [items, selectedVehicleIds]);
 
   useEffect(() => {
-    if (!question && !rows.length) setAnswer(assistantFleetSummary(items, events));
-  }, [items, events, question, rows.length]);
+    if (!question && !rows.length) setAnswer(assistantFleetSummary(selectedScopeItems, events));
+  }, [selectedScopeItems, events, question, rows.length]);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.localStorage) {
+      window.localStorage.setItem(ASSISTANT_HISTORY_STORAGE_KEY, JSON.stringify(questionHistory));
+    }
+  }, [questionHistory]);
+
+  const toggleVehicleSelection = (deviceId) => {
+    const value = String(deviceId);
+    setSelectedVehicleIds((current) => {
+      if (!current.length) return [value];
+      return current.includes(value) ? current.filter((entry) => entry !== value) : [...current, value];
+    });
+  };
+
+  const selectAllVehicles = () => setSelectedVehicleIds([]);
+  const clearVehicleSelection = () => setSelectedVehicleIds([]);
+
+  const rememberQuestion = (text) => {
+    const value = String(text || '').trim();
+    if (!value) return;
+    setQuestionHistory((current) => [value, ...current.filter((entry) => entry !== value)].slice(0, 8));
+  };
 
   const runFormalReport = async (prompt) => {
-    const item = findVehicleFromText(prompt, items);
+    const item = findVehicleFromText(prompt, selectedScopeItems);
+    if (selectedScopeItems.length > 1) {
+      setMeta({ type: 'custom', device: null, from: datetimeLocalValue(), to: datetimeLocalValue() });
+      setAnswer(assistantCustomReport(selectedScopeItems, events));
+      return;
+    }
     if (!item?.device?.id) {
       setAnswer('Nao encontrei veiculo liberado neste login para gerar o relatorio.');
       return;
@@ -2191,22 +2556,23 @@ function AIAssistantPage({ items, events }) {
   const submitPrompt = async (prompt = question) => {
     const text = String(prompt || '').trim();
     setQuestion(text);
+    if (text) rememberQuestion(text);
     setMessage('');
     setRows([]);
     setBusy(true);
     try {
       const normalized = normalizeText(text);
       if (!text) {
-        setAnswer(assistantFleetSummary(items, events));
+        setAnswer(assistantFleetSummary(selectedScopeItems, events));
       } else if (/relatorio|rota|trajeto|playback|parada|viagem|evento|resumo|km|quilometragem/.test(normalized) && !/personalizado|geral da frota|frota/.test(normalized)) {
         await runFormalReport(text);
       } else if (/personalizado|geral da frota|frota|todos|situacao|situacao geral|status/.test(normalized)) {
         setMeta({ type: 'custom', device: null, from: datetimeLocalValue(), to: datetimeLocalValue() });
-        setAnswer(assistantCustomReport(items, events));
+        setAnswer(assistantCustomReport(selectedScopeItems, events));
       } else {
-        const item = findVehicleFromText(text, items);
+        const item = findVehicleFromText(text, selectedScopeItems);
         setMeta({ type: 'vehicle', device: item?.device || null, from: datetimeLocalValue(), to: datetimeLocalValue() });
-        setAnswer(assistantVehicleDetails(item));
+        setAnswer(selectedScopeItems.length > 1 ? assistantCustomReport(selectedScopeItems, events) : assistantVehicleDetails(item));
       }
     } catch (error) {
       setMessage(`Falha no assistente: ${error.message}`);
@@ -2224,15 +2590,6 @@ function AIAssistantPage({ items, events }) {
     const ok = downloadCsv(`rafacar-${meta?.type || 'relatorio'}-${meta?.device?.id || 'frota'}-${Date.now()}.csv`, rows);
     if (!ok) setMessage('Nao ha dados de relatorio para exportar.');
   };
-
-  const examples = [
-    'Resumo geral da frota',
-    'Relatorio de rota hoje',
-    'Paradas de hoje',
-    'Viagens nas ultimas 24 horas',
-    'Eventos de hoje',
-    'Informacoes CAN e temperatura'
-  ];
 
   return (
     <section className="panel assistant-panel">
@@ -2254,6 +2611,53 @@ function AIAssistantPage({ items, events }) {
               placeholder="Ex.: gerar rota de hoje do veiculo ABC1234, paradas de ontem, status da frota, temperatura do veiculo..."
             />
           </label>
+          <div className={`assistant-vehicle-picker ${vehiclePickerOpen ? 'is-open' : 'is-collapsed'}`}>
+            <button type="button" className="assistant-vehicle-picker-toggle" onClick={() => setVehiclePickerOpen((open) => !open)}>
+              <span><b>Veículos do contexto</b></span>
+              <span className="assistant-vehicle-picker-chevron"><ChevronRight size={15} /></span>
+            </button>
+            <small className="muted">{selectedVehicleIds.length ? `${selectedVehicleIds.length} selecionado(s)` : 'Todos os veículos visíveis'}</small>
+            {vehiclePickerOpen && (
+              <div className="assistant-vehicle-picker-body">
+                <div className="assistant-vehicle-picker-actions">
+                  <button className="ghost-btn" type="button" onClick={selectAllVehicles}>Todos</button>
+                  <button className="ghost-btn" type="button" onClick={clearVehicleSelection}>Limpar</button>
+                </div>
+                <div className="assistant-vehicle-list">
+                  {items.map(({ device, position, driverDisplay }) => {
+                    const id = String(device?.id ?? '');
+                    const checked = !selectedVehicleIds.length || selectedVehicleIds.includes(id);
+                    const state = movementState(device, position || {});
+                    const speedText = position ? `${formatSpeed(position.speed)}` : 'Sem pos.';
+                    const driverText = driverDisplay?.label && driverDisplay.label !== 'Não informado' ? driverDisplay.label : 'Motorista não informado';
+                    const lat = numberOrNull(position?.latitude);
+                    const lon = numberOrNull(position?.longitude);
+                    const addressText = position?.address || (lat !== null && lon !== null ? `${lat.toFixed(5)}, ${lon.toFixed(5)}` : 'Endereço indisponível');
+                    const externalLocationUrl = lat !== null && lon !== null ? `https://www.google.com/maps?q=${lat},${lon}` : null;
+                    return (
+                      <label key={id} className="assistant-vehicle-option">
+                        <input type="checkbox" checked={checked} onChange={() => toggleVehicleSelection(id)} />
+                        <span className="assistant-vehicle-option-content">
+                          <span className="assistant-vehicle-option-title">{getVehicleName(device)}{getVehiclePlate(device) ? ` · ${getVehiclePlate(device)}` : ''}</span>
+                          <span className="assistant-vehicle-option-meta">
+                            {speedText} · {movementLabel(state)} · {driverText} · {' '}
+                            {externalLocationUrl ? (
+                              <a href={externalLocationUrl} target="_blank" rel="noreferrer" className="assistant-location-link" title="Abrir endereço no Google Maps">
+                                {addressText}
+                              </a>
+                            ) : (
+                              <span>{addressText}</span>
+                            )}
+                          </span>
+                        </span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+
           <div className="assistant-actions">
             <button className="primary-btn" type="button" onClick={() => submitPrompt()} disabled={busy}>
               <Bot size={17} /> {busy ? 'Analisando...' : 'Perguntar'}
@@ -2266,10 +2670,20 @@ function AIAssistantPage({ items, events }) {
             </button>
           </div>
           <div className="assistant-suggestions">
-            {examples.map((example) => (
+            {ASSISTANT_EXAMPLES.map((example) => (
               <button key={example} type="button" onClick={() => submitPrompt(example)} disabled={busy}>{example}</button>
             ))}
           </div>
+          {questionHistory.length > 0 && (
+            <div className="assistant-history">
+              <small className="muted">Últimas perguntas salvas</small>
+              <div className="assistant-suggestions">
+                {questionHistory.map((entry) => (
+                  <button key={entry} type="button" onClick={() => submitPrompt(entry)} disabled={busy}>{entry}</button>
+                ))}
+              </div>
+            </div>
+          )}
           {message && <div className="error-box">{message}</div>}
         </div>
 
@@ -2587,15 +3001,14 @@ function LoginPage({ onLogin }) {
   };
   return (
     <div className="login-shell"><div className="login-card">
-      <div className="login-brand"><BrandLogo /><p className="login-brand-subtitle">Entre usando as credenciais do Traccar</p></div>
+      <div className="login-brand"><BrandLogo /></div>
       <form onSubmit={submit} className="login-form">
-        <label><small>Usuário ou e-mail Traccar</small><input value={login} onChange={(event) => setLogin(event.target.value)} autoComplete="username" placeholder="usuario@empresa.com ou login" required /></label>
-        <label><small>Senha Traccar</small><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="Digite sua senha" required /></label>
+        <label><small>Usuário</small><input value={login} onChange={(event) => setLogin(event.target.value)} autoComplete="username" placeholder="usuario@empresa.com ou login" required /></label>
+        <label><small>Senha</small><input type="password" value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" placeholder="Digite sua senha" required /></label>
         {error && <div className="error-box"><b>Login não autorizado:</b> {error}</div>}
-        <button className="primary-btn login-submit" disabled={busy} type="submit"><KeyRound size={18} /> {busy ? 'Validando no Traccar...' : 'Entrar no painel'}</button>
+        <button className="primary-btn login-submit" disabled={busy} type="submit"><KeyRound size={18} /> {busy ? 'Validando...' : 'Entrar no painel'}</button>
       </form>
       <div className="login-support-row"><SupportWhatsapp /></div>
-      <div className="login-security"><ShieldCheck size={16} /><span>Sua senha é enviada somente ao backend seguro do RAFACAR, que autentica no Traccar e guarda a sessão em cookie HttpOnly.</span></div>
     </div></div>
   );
 }
@@ -2623,7 +3036,7 @@ function App() {
   const [lastUpdate, setLastUpdate] = useState(null);
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-  const [fitMap, setFitMap] = useState(true);
+  const [fitMap, setFitMap] = useState(false);
   const [focusedVehicleId, setFocusedVehicleId] = useState(null);
   const [layerKey, setLayerKey] = useState(() => localStorage.getItem('traccar-dev-map-layer') || 'googleHybrid');
   const [cameraTarget, setCameraTarget] = useState(null);
@@ -2820,7 +3233,9 @@ function App() {
           />
         )}
         {activeTab === 'assistente' && <AIAssistantPage items={items} events={events} />}
-        {activeTab === 'veiculos' && <VehiclesPage items={filteredItems} onOpenCamera={openCamera} />}
+        {activeTab === 'veiculos' && <VehiclesPage items={filteredItems} onOpenCamera={openCamera} onFocusVehicle={(vehicleId) => { setFocusedVehicleId(Number(vehicleId)); setFitMap(false); setFleetPanelHidden(false); setActiveTab('dashboard'); }} />}
+        {activeTab === 'motoristas' && <DriversPage drivers={drivers} onRefresh={loadData} />}
+        {activeTab === 'manutencao' && <MaintenancePage items={items} />}
         {activeTab === 'eventos' && <EventsPage events={events} devicesById={devicesById} />}
         {activeTab === 'relatorios' && <ReportsPage items={items} layerKey={layerKey} />}
         {activeTab === 'comandos' && <CommandsPage items={items} />}
