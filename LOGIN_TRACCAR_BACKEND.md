@@ -23,4 +23,4 @@ GET  /api/auth/me
 
 Sem login, `/api/bootstrap`, `/api/snapshot`, `/api/command-types`, `/api/send-command` e `/api/traccar/*` retornam `401`.
 
-Servidor Traccar: `https://gps2.rafacarrastreadores.com.br`.
+Servidor Traccar: `http://technosat.m3solucoes.net/`.
