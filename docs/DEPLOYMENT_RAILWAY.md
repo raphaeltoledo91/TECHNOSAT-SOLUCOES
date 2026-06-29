@@ -1,8 +1,8 @@
-# Deploy Railway - RAFACAR DEV V4
+# Deploy Railway - TECHNOSAT DEV V4
 
 ## Projeto
 
-Repositório: `raphaeltoledo91/RAFACAR-DEV-V4`
+Repositório: `raphaeltoledo91/TECHNOSAT-DEV-V4`
 
 Branch recomendada para produção após validação: `main`
 

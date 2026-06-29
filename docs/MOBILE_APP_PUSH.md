@@ -1,8 +1,8 @@
-# RAFACAR Mobile App e Push
+# TECHNOSAT Mobile App e Push
 
 ## Modelo recomendado agora
 
-O RAFACAR pode rodar no celular como PWA instalavel ou dentro de um WebView. Esta primeira base nao muda a VPS do Traccar:
+O TECHNOSAT pode rodar no celular como PWA instalavel ou dentro de um WebView. Esta primeira base nao muda a VPS do Traccar:
 
 - Railway hospeda o painel e o proxy.
 - O celular instala o app a partir do navegador.

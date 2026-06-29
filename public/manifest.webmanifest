@@ -1,7 +1,7 @@
 {
-  "name": "RAFACAR RASTREADORES",
-  "short_name": "RAFACAR",
-  "description": "Painel RAFACAR para rastreamento veicular via Traccar.",
+  "name": "TECHNOSAT SOLUÇÕES",
+  "short_name": "TECHNOSAT",
+  "description": "Painel TECHNOSAT para rastreamento veicular via Traccar.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -22,7 +22,7 @@
     {
       "name": "Mapa da frota",
       "short_name": "Mapa",
-      "description": "Abrir o mapa da frota RAFACAR.",
+      "description": "Abrir o mapa da frota TECHNOSAT.",
       "url": "/?tab=dashboard",
       "icons": [{ "src": "/brand/rafacar-app-icon-512.png", "sizes": "512x512", "type": "image/png" }]
     },

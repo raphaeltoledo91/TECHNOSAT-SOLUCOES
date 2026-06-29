@@ -1,9 +1,9 @@
 {
-  "traccarUrl": "https://gps2.rafacarrastreadores.com.br",
+  "traccarUrl": "http://technosat.m3solucoes.net/",
   "port": 3000,
   "pollingMs": 30000,
   "authMode": "traccar-user-session",
-  "publicAppName": "RAFACAR",
+  "publicAppName": "TECHNOSAT",
   "featureLiveVideo": true,
   "featureDriverIdentification": true,
   "allowUnsafeGoogleTiles": true

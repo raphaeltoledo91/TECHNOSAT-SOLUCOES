@@ -3,7 +3,7 @@
   "version": "6.1.0",
   "private": true,
   "type": "module",
-  "description": "RAFACAR DEV V4: frontend React com BFF seguro para Traccar 6.14, câmera ao vivo e identificação de motoristas.",
+  "description": "TECHNOSAT DEV V4: frontend React com BFF seguro para Traccar 6.14, câmera ao vivo e identificação de motoristas.",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
     "build": "vite build",

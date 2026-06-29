@@ -2951,8 +2951,8 @@ function applyFilters(items, search, statusFilter) {
 
 
 
-const WHATSAPP_SUPPORT_NUMBER = '17-99609-8315';
-const WHATSAPP_SUPPORT_URL = 'https://wa.me/5517996098315';
+const WHATSAPP_SUPPORT_NUMBER = '17-99161-2290';
+const WHATSAPP_SUPPORT_URL = 'https://wa.me/5517991612290';
 
 function WhatsAppIcon({ size = 18 }) {
   return (
@@ -2965,9 +2965,9 @@ function WhatsAppIcon({ size = 18 }) {
 function BrandLogo({ compact = false }) {
   return (
     <div className={`brand-logo-block ${compact ? 'compact' : ''}`}>
-      <span className="brand-logo-mark" aria-label="RAFACAR RASTREADORES">
-        <img className="brand-logo-img logo-light-only" src="/brand/rafacar-logo-light-remastered.png" alt="RAFACAR RASTREADORES" />
-        <img className="brand-logo-img logo-dark-only" src="/brand/rafacar-logo-dark-remastered.png" alt="RAFACAR RASTREADORES" />
+      <span className="brand-logo-mark" aria-label="TECHNOSAT SOLUÇÕES">
+        <img className="brand-logo-img logo-light-only" src="/brand/rafacar-logo-light-remastered.png" alt="TECHNOSAT SOLUÇÕES" />
+        <img className="brand-logo-img logo-dark-only" src="/brand/rafacar-logo-dark-remastered.png" alt="TECHNOSAT SOLUÇÕES" />
       </span>
     </div>
   );

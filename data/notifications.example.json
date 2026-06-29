@@ -1,5 +1,5 @@
 {
-  "publicAppUrl": "https://rafacar-dev-v4-production.up.railway.app",
+  "publicAppUrl": "http://technosat.m3solucoes.net/",
   "traccarWebhookSecret": "troque-por-um-segredo-forte",
   "pushover": {
     "appToken": "",

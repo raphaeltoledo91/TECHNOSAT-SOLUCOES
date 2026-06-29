@@ -19,7 +19,7 @@ O frontend não usa IP do Traccar diretamente. O navegador fala com o BFF Expres
 ```env
 FEATURE_LIVE_VIDEO=true
 FEATURE_DRIVER_IDENTIFICATION=true
-PUBLIC_APP_NAME=RAFACAR
+PUBLIC_APP_NAME=TECHNOSAT
 PUBLIC_APP_URL=https://rafacar-dev-v4-production.up.railway.app
 ```
 

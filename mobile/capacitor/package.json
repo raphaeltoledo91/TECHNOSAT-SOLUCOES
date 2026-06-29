@@ -2,7 +2,7 @@
   "name": "rafacar-mobile-capacitor",
   "version": "1.0.0",
   "private": true,
-  "description": "Android/WebView wrapper for RAFACAR Rastreadores hosted on Railway.",
+  "description": "Android/WebView wrapper for TECHNOSAT SOLUÇÕES hosted on Railway.",
   "scripts": {
     "cap": "cap",
     "android:add": "cap add android",

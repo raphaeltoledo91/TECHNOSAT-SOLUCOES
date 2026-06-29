@@ -1,6 +1,6 @@
-# RAFACAR DEV V4
+# TECHNOSAT DEV V4
 
-Frontend RAFACAR para Traccar 6.14 com BFF Express, mapa em tempo real, comandos seguros, identificação de motoristas e webview de câmera ao clicar na placa.
+Frontend TECHNOSAT para Traccar 6.14 com BFF Express, mapa em tempo real, comandos seguros, identificação de motoristas e webview de câmera ao clicar na placa.
 
 ## Principais recursos
 
@@ -73,4 +73,4 @@ Use Railway como Web Service Node/Express.
 - Plano de evolução: [`docs/LONG_TERM_PLAN.md`](docs/LONG_TERM_PLAN.md)
 - Configuração versionada: [`railway.toml`](railway.toml)
 
-O Traccar continua rodando separado. A Railway hospeda apenas o frontend RAFACAR e o proxy Express que consome a API do Traccar.
+O Traccar continua rodando separado. A Railway hospeda apenas o frontend TECHNOSAT e o proxy Express que consome a API do Traccar.

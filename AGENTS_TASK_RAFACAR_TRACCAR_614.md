@@ -1,6 +1,6 @@
 # AGENTS_TASK_RAFACAR_TRACCAR_614.md
 
-# Tarefa avançada Codex — RAFACAR DEV V4 com Traccar 6.14, Live Video, ADAS/DSM, Evidências e Correção de Identificação de Motoristas
+# Tarefa avançada Codex — TECHNOSAT DEV V4 com Traccar 6.14, Live Video, ADAS/DSM, Evidências e Correção de Identificação de Motoristas
 
 Use este arquivo como instrução principal para desenvolvimento no Codex.
 
@@ -20,7 +20,7 @@ Nenhum recurso deve ser implementado por suposição quando houver documentaçã
 ### 0.1 Repositório base do frontend
 
 ```txt
-https://github.com/raphaeltoledo91/RAFACAR-DEV-V4
+https://github.com/raphaeltoledo91/TECHNOSAT-DEV-V4
 ```
 
 Uso obrigatório:
@@ -211,7 +211,7 @@ docs/references/README.md
 Usar como base principal do frontend já criado:
 
 ```txt
-https://github.com/raphaeltoledo91/RAFACAR-DEV-V4
+https://github.com/raphaeltoledo91/TECHNOSAT-DEV-V4
 ```
 
 Este repositório é a referência principal para evolução do projeto.
@@ -220,7 +220,7 @@ Não iniciar projeto do zero.
 
 Antes de modificar:
 
-1. Clonar ou abrir o repositório `raphaeltoledo91/RAFACAR-DEV-V4`.
+1. Clonar ou abrir o repositório `raphaeltoledo91/TECHNOSAT-DEV-V4`.
 2. Criar branch nova de trabalho.
 3. Auditar estrutura atual.
 4. Preservar layout, identidade visual e fluxo existente.
@@ -276,7 +276,7 @@ TRACCAR_URL=https://gps2.rafacarrastreadores.com.br
 TRACCAR_API_BASE_URL=https://gps2.rafacarrastreadores.com.brapi
 TRACCAR_STREAM_BASE_URL=https://gps2.rafacarrastreadores.com.br/api/stream
 
-PUBLIC_APP_NAME=RAFACAR
+PUBLIC_APP_NAME=TECHNOSAT
 PUBLIC_CONTACT_PHONE=
 PUBLIC_CONTACT_EMAIL=
 PUBLIC_COMPANY_ADDRESS=
@@ -2263,7 +2263,7 @@ Mensagem final esperada do Codex:
 Implementação concluída.
 
 Repositório base:
-https://github.com/raphaeltoledo91/RAFACAR-DEV-V4
+https://github.com/raphaeltoledo91/TECHNOSAT-DEV-V4
 
 Branch:
 Commits:

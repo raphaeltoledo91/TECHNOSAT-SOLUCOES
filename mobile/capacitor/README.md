@@ -1,4 +1,4 @@
-# RAFACAR Android/WebView
+# TECHNOSAT Android/WebView
 
 Este pacote cria um app Android com Capacitor carregando o painel publicado na Railway:
 

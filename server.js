@@ -380,7 +380,7 @@ function formatWebhookMessage(payload = {}) {
   return parts.join('\n');
 }
 
-async function sendPushoverMessage({ title = 'RAFACAR RASTREADORES', message, priority = config.pushover.priority, url = config.publicAppUrl }) {
+async function sendPushoverMessage({ title = 'TECHNOSAT SOLUÇÕES', message, priority = config.pushover.priority, url = config.publicAppUrl }) {
   if (!pushoverConfigured()) {
     const error = new Error('Pushover nao configurado. Defina PUSHOVER_APP_TOKEN e PUSHOVER_USER_KEY na Railway.');
     error.status = 503;
@@ -390,14 +390,14 @@ async function sendPushoverMessage({ title = 'RAFACAR RASTREADORES', message, pr
     token: config.pushover.token,
     user: config.pushover.user,
     title: String(title).slice(0, 250),
-    message: String(message || 'Teste RAFACAR').slice(0, 1024),
+    message: String(message || 'Teste TECHNOSAT').slice(0, 1024),
     priority: String(Number.isFinite(priority) ? priority : 0),
     sound: config.pushover.sound || 'pushover'
   });
   if (config.pushover.device) body.set('device', config.pushover.device);
   if (url) {
     body.set('url', url);
-    body.set('url_title', 'Abrir RAFACAR');
+    body.set('url_title', 'Abrir TECHNOSAT');
   }
   const response = await fetch('https://api.pushover.net/1/messages.json', { method: 'POST', headers: { Accept: 'application/json', 'Content-Type': 'application/x-www-form-urlencoded' }, body });
   const text = await response.text();
@@ -427,7 +427,7 @@ app.get('/api/mobile/status', requireAuth, (req, res) => { res.set('Cache-Contro
 app.post('/api/mobile/pushover/test', requireAuth, requireAdministrator, async (req, res) => {
   try {
     const user = req.rafacarSession?.user?.name || req.rafacarSession?.user?.email || 'admin';
-    const payload = await sendPushoverMessage({ title: 'Teste RAFACAR', message: `Notificacao Pushover enviada pelo painel RAFACAR.\nUsuario: ${user}\nHorario: ${new Date().toISOString()}` });
+    const payload = await sendPushoverMessage({ title: 'Teste TECHNOSAT', message: `Notificacao Pushover enviada pelo painel TECHNOSAT.\nUsuario: ${user}\nHorario: ${new Date().toISOString()}` });
     res.set('Cache-Control', 'no-store');
     res.json({ ok: true, result: { status: payload?.status || 1, request: payload?.request || null } });
   } catch (error) {
@@ -501,7 +501,7 @@ app.post('/api/webhooks/traccar/pushover', async (req, res) => {
     const providedSecret = String(req.get('x-rafacar-webhook-secret') || req.query.secret || '');
     if (config.traccarWebhookSecret && providedSecret !== config.traccarWebhookSecret) return res.status(401).json({ ok: false, error: 'Webhook nao autorizado.' });
     if (!config.traccarWebhookSecret) return res.status(503).json({ ok: false, error: 'Defina TRACCAR_WEBHOOK_SECRET antes de ativar o webhook.' });
-    const payload = await sendPushoverMessage({ title: 'Alerta RAFACAR', message: formatWebhookMessage(req.body || {}) });
+    const payload = await sendPushoverMessage({ title: 'Alerta TECHNOSAT', message: formatWebhookMessage(req.body || {}) });
     res.json({ ok: true, result: { status: payload?.status || 1, request: payload?.request || null } });
   } catch (error) {
     res.status(error.status || 502).json({ ok: false, error: error.message || 'Falha ao processar webhook Pushover.', details: error.payload || null });
@@ -509,5 +509,5 @@ app.post('/api/webhooks/traccar/pushover', async (req, res) => {
 });
 app.use(express.static(distDir, { etag: true, maxAge: '1h', setHeaders(res, filePath) { if (filePath.endsWith('index.html')) res.setHeader('Cache-Control', 'no-store'); } }));
 app.get('*', (_req, res) => { res.sendFile(path.join(distDir, 'index.html')); });
-app.use((error, _req, res, _next) => { console.error('[server]', error); res.status(500).json({ ok: false, error: 'Erro interno no proxy RAFACAR RASTREADORES.' }); });
-app.listen(config.port, '0.0.0.0', () => { console.log(`RAFACAR RASTREADORES rodando em 0.0.0.0:${config.port}`); console.log(`Proxy Traccar: ${config.traccarUrl}`); console.log('Auth mode: credenciais Traccar por usuário com cookie HttpOnly'); });
+app.use((error, _req, res, _next) => { console.error('[server]', error); res.status(500).json({ ok: false, error: 'Erro interno no proxy TECHNOSAT SOLUÇÕES.' }); });
+app.listen(config.port, '0.0.0.0', () => { console.log(`TECHNOSAT SOLUÇÕES rodando em 0.0.0.0:${config.port}`); console.log(`Proxy Traccar: ${config.traccarUrl}`); console.log('Auth mode: credenciais Traccar por usuário com cookie HttpOnly'); });

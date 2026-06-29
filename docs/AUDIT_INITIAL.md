@@ -1,4 +1,4 @@
-# Auditoria inicial - RAFACAR DEV V4 / Traccar 6.14
+# Auditoria inicial - TECHNOSAT DEV V4 / Traccar 6.14
 
 Data: 2026-06-20
 Branch de trabalho: `fix/traccar-camera-plate-live-image`
@@ -45,7 +45,7 @@ Neste ambiente local de Codex não há `node`/`npm` no PATH, então a validaçã
 - Start command: `npm start`
 - Healthcheck: `/api/health`
 
-O guia atual em `docs/RAILWAY_DEPLOY.md` ainda cita `RAFACAR-DEV2`; precisa ser atualizado para `RAFACAR-DEV-V4`.
+O guia atual em `docs/RAILWAY_DEPLOY.md` ainda cita `TECHNOSAT-DEV2`; precisa ser atualizado para `TECHNOSAT-DEV-V4`.
 
 ## Integração Traccar atual
 

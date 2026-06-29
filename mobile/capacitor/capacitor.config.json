@@ -1,6 +1,6 @@
 {
   "appId": "br.com.rafacarrastreadores.rafacar",
-  "appName": "RAFACAR",
+  "appName": "TECHNOSAT",
   "webDir": "www",
   "server": {
     "url": "https://rafacar-dev2-production.up.railway.app",

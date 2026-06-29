@@ -175,7 +175,7 @@ td { color: var(--text); }
   .actions input, .actions select, .actions button { flex: 1; }
 }
 
-/* Login RAFACAR DEV2 com credenciais Traccar */
+/* Login TECHNOSAT DEV2 com credenciais Traccar */
 .login-shell { min-height: 100vh; display: grid; place-items: center; padding: 24px; background: radial-gradient(circle at top left, rgba(34,197,94,.22), transparent 34%), radial-gradient(circle at bottom right, rgba(14,165,233,.18), transparent 32%), var(--bg); }
 .login-card { width: min(100%, 460px); border: 1px solid var(--line); border-radius: 30px; background: rgba(15, 23, 42, .94); box-shadow: var(--shadow); padding: 26px; }
 .login-card.compact { width: min(100%, 390px); }
@@ -189,7 +189,7 @@ td { color: var(--text); }
 .login-security { display: flex; gap: 9px; align-items: flex-start; color: var(--muted); font-size: 12px; line-height: 1.45; border-top: 1px solid var(--line); margin-top: 18px; padding-top: 14px; }
 
 /* ============================================================
-   RAFACAR DEV2 - MODERN MAP / TELEMETRY THEME
+   TECHNOSAT DEV2 - MODERN MAP / TELEMETRY THEME
    ============================================================ */
 
 :root { --glass: rgba(2, 6, 23, .72); --glass-strong: rgba(2, 6, 23, .88); --accent-moving: #22c55e; --accent-stopped: #ef4444; --accent-idle: #38bdf8; --accent-unknown: #eab308; }
@@ -236,7 +236,7 @@ body { background: radial-gradient(circle at 12% 8%, rgba(56, 189, 248, .20), tr
 @media (max-width: 760px) { .modern-card-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } .popup-speed-row { grid-template-columns: 1fr; } .telemetry-grid { grid-template-columns: 1fr; } .vehicle-popup { min-width: 280px; } }
 
 /* ============================================================
-   RAFACAR DEV2 - Sidebar alinhada/recolhível e ícones flutuantes
+   TECHNOSAT DEV2 - Sidebar alinhada/recolhível e ícones flutuantes
    ============================================================ */
 
 .app-shell {
@@ -425,7 +425,7 @@ body { background: radial-gradient(circle at 12% 8%, rgba(56, 189, 248, .20), tr
 }
 
 /* ============================================================
-   RAFACAR DEV2 - Dashboard compacto + relatórios/playback
+   TECHNOSAT DEV2 - Dashboard compacto + relatórios/playback
    ============================================================ */
 
 .dashboard-compact-grid {
@@ -642,7 +642,7 @@ body { background: radial-gradient(circle at 12% 8%, rgba(56, 189, 248, .20), tr
   }
 }
 
-/* RAFACAR SVG ROUTE PATCH START */
+/* TECHNOSAT SVG ROUTE PATCH START */
 
 .vehicle-svg-marker {
   --vehicle-accent: var(--accent-unknown, #eab308);
@@ -814,9 +814,9 @@ body { background: radial-gradient(circle at 12% 8%, rgba(56, 189, 248, .20), tr
   }
 }
 
-/* RAFACAR SVG ROUTE PATCH END */
+/* TECHNOSAT SVG ROUTE PATCH END */
 
-/* RAFACAR BRAND FINAL PATCH START */
+/* TECHNOSAT BRAND FINAL PATCH START */
 
 :root[data-theme="light"] {
   color-scheme: light;
@@ -1041,9 +1041,9 @@ body { background: radial-gradient(circle at 12% 8%, rgba(56, 189, 248, .20), tr
   }
 }
 
-/* RAFACAR BRAND FINAL PATCH END */
+/* TECHNOSAT BRAND FINAL PATCH END */
 
-/* RAFACAR WEBVIEW MAP APP PATCH START */
+/* TECHNOSAT WEBVIEW MAP APP PATCH START */
 
 .brand-logo-text {
   display: none;
@@ -1398,9 +1398,9 @@ body { background: radial-gradient(circle at 12% 8%, rgba(56, 189, 248, .20), tr
   }
 }
 
-/* RAFACAR WEBVIEW MAP APP PATCH END */
+/* TECHNOSAT WEBVIEW MAP APP PATCH END */
 
-/* RAFACAR BRAND, MOBILE AND INTEGRATIONS PATCH START */
+/* TECHNOSAT BRAND, MOBILE AND INTEGRATIONS PATCH START */
 
 :root {
   --brand-red: #dc0012;
@@ -2013,9 +2013,9 @@ textarea:focus {
   }
 }
 
-/* RAFACAR BRAND, MOBILE AND INTEGRATIONS PATCH END */
+/* TECHNOSAT BRAND, MOBILE AND INTEGRATIONS PATCH END */
 
-/* RAFACAR CALM GLASS REFINEMENT START */
+/* TECHNOSAT CALM GLASS REFINEMENT START */
 
 :root {
   --brand-red: #1f766d;
@@ -2481,9 +2481,9 @@ textarea:focus {
   }
 }
 
-/* RAFACAR CALM GLASS REFINEMENT END */
+/* TECHNOSAT CALM GLASS REFINEMENT END */
 
-/* RAFACAR VEHICLE PNG MARKERS AND POPUP CENTERING PATCH START */
+/* TECHNOSAT VEHICLE PNG MARKERS AND POPUP CENTERING PATCH START */
 
 .vehicle-image-core {
   position: relative;
@@ -2628,9 +2628,9 @@ textarea:focus {
   }
 }
 
-/* RAFACAR VEHICLE PNG MARKERS AND POPUP CENTERING PATCH END */
+/* TECHNOSAT VEHICLE PNG MARKERS AND POPUP CENTERING PATCH END */
 
-/* RAFACAR CARS V2 MAP REFINEMENT START */
+/* TECHNOSAT CARS V2 MAP REFINEMENT START */
 
 .vehicle-svg-marker {
   background: transparent !important;
@@ -2823,9 +2823,9 @@ textarea:focus {
   }
 }
 
-/* RAFACAR CARS V2 MAP REFINEMENT END */
+/* TECHNOSAT CARS V2 MAP REFINEMENT END */
 
-/* RAFACAR CITY LOGIN BACKGROUND START */
+/* TECHNOSAT CITY LOGIN BACKGROUND START */
 
 .login-shell {
   min-height: 100dvh;
@@ -2867,9 +2867,9 @@ textarea:focus {
   }
 }
 
-/* RAFACAR CITY LOGIN BACKGROUND END */
+/* TECHNOSAT CITY LOGIN BACKGROUND END */
 
-/* RAFACAR COMPACT VEHICLE POPUP START */
+/* TECHNOSAT COMPACT VEHICLE POPUP START */
 
 .vehicle-leaflet-popup {
   margin-bottom: 10px;
@@ -3095,9 +3095,9 @@ textarea:focus {
   background: rgba(255, 255, 255, .04);
 }
 
-/* RAFACAR COMPACT VEHICLE POPUP END */
+/* TECHNOSAT COMPACT VEHICLE POPUP END */
 
-/* RAFACAR MOBILE APP MODULE START */
+/* TECHNOSAT MOBILE APP MODULE START */
 
 .mobile-app-grid {
   display: grid;
@@ -3128,9 +3128,9 @@ textarea:focus {
   }
 }
 
-/* RAFACAR MOBILE APP MODULE END */
+/* TECHNOSAT MOBILE APP MODULE END */
 
-/* RAFACAR AI ASSISTANT AND USER MODULE START */
+/* TECHNOSAT AI ASSISTANT AND USER MODULE START */
 
 .assistant-panel,
 .user-profile-panel {
@@ -3416,4 +3416,4 @@ textarea:focus {
   }
 }
 
-/* RAFACAR AI ASSISTANT AND USER MODULE END */
+/* TECHNOSAT AI ASSISTANT AND USER MODULE END */

@@ -1,4 +1,4 @@
-# Auditoria final - correções RAFACAR DEV V4
+# Auditoria final - correções TECHNOSAT DEV V4
 
 Data: 2026-06-21
 Branch: `fix/traccar-camera-plate-live-image`

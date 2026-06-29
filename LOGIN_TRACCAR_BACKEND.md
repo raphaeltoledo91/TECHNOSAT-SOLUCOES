@@ -1,4 +1,4 @@
-# Login RAFACAR DEV2 com credenciais do Traccar
+# Login TECHNOSAT DEV2 com credenciais do Traccar
 
 O painel usa as próprias credenciais do Traccar para cada usuário.
 

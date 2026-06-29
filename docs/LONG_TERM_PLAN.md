@@ -3,7 +3,7 @@
 ## Phase 1: Railway Readiness
 
 - Keep the Traccar VPS unchanged.
-- Deploy RAFACAR-DEV-V4 as a Railway web service.
+- Deploy TECHNOSAT-DEV-V4 as a Railway web service.
 - Use `railway.toml` as the deployment source of truth.
 - Validate every push with GitHub Actions before trusting autodeploys.
 

@@ -1,4 +1,4 @@
-# Railway Deploy Guide - RAFACAR DEV V4
+# Railway Deploy Guide - TECHNOSAT DEV V4
 
 This project runs on Railway as one Node/Express service that serves the built React frontend and proxies API calls to the Traccar server.
 
@@ -6,7 +6,7 @@ This project runs on Railway as one Node/Express service that serves the built R
 
 ```text
 Browser
-  -> RAFACAR DEV V4 on Railway
+  -> TECHNOSAT DEV V4 on Railway
   -> Express BFF in server.js
   -> Traccar Server 6.14
 ```
@@ -14,7 +14,7 @@ Browser
 ## Railway Project Setup
 
 1. Create or open the Railway project.
-2. Deploy from GitHub repo `raphaeltoledo91/RAFACAR-DEV-V4`.
+2. Deploy from GitHub repo `raphaeltoledo91/TECHNOSAT-DEV-V4`.
 3. Use branch `main` after the fix branch is merged.
 4. Railway reads `railway.toml` automatically.
 
