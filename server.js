@@ -22,7 +22,7 @@ function readJsonSafe(file, fallback = {}) {
 
 function ensureConfigFiles() {
   fs.mkdirSync(dataDir, { recursive: true });
-  const example = { traccarUrl: 'https://gps2.rafacarrastreadores.com.br', port: 3000, pollingMs: 30000, allowUnsafeGoogleTiles: true, sessionTtlHours: 8 };
+  const example = { traccarUrl: 'http://technosat.m3solucoes.net/', port: 3000, pollingMs: 30000, allowUnsafeGoogleTiles: true, sessionTtlHours: 8 };
   const notificationsExample = {
     publicAppUrl: 'https://rafacar-dev-v4-production.up.railway.app',
     traccarWebhookSecret: 'troque-por-um-segredo-forte',
@@ -67,7 +67,7 @@ function firebaseWebConfigJson() {
 
 const config = {
   port: Number(process.env.PORT || localConfig.port || 3000),
-  traccarUrl: String(process.env.TRACCAR_URL || localConfig.traccarUrl || 'https://gps2.rafacarrastreadores.com.br').replace(/\/+$/, ''),
+  traccarUrl: String(process.env.TRACCAR_URL || localConfig.traccarUrl || 'http://technosat.m3solucoes.net/').replace(/\/+$/, ''),
   pollingMs: Number(process.env.POLLING_MS || localConfig.pollingMs || 30000),
   allowUnsafeGoogleTiles: String(process.env.ALLOW_UNSAFE_GOOGLE_TILES ?? localConfig.allowUnsafeGoogleTiles ?? 'true') !== 'false',
   sessionTtlMs: Number(process.env.SESSION_TTL_MS || (Number(localConfig.sessionTtlHours || 8) * 60 * 60 * 1000)),
